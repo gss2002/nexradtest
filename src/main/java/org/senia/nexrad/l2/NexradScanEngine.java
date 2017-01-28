@@ -20,13 +20,15 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import ucar.unidata.io.RandomAccessFile;
+
 public class NexradScanEngine {
 
 	public static void main(String[] args) {
 		File file = new File(args[0]);
 		String outputdir = args[1];
 
-		Collection<File> files = FileUtils.listFiles(file, null, true);
+		List<File> files = (List<File>) FileUtils.listFiles(file, null, true);
 		int elev = 0;
 
 		int vcp = 0;
@@ -40,7 +42,9 @@ public class NexradScanEngine {
 		int tempRadialCount = 0;
 		List<File> elevFileList = new ArrayList<File>();
 
-		for (File file2 : files) {
+		//for (File file2 : files) {
+		for (int i = 0; i < files.size(); i++) {
+			File file2=files.get(i);
 			NexradFileEngine nfe = new NexradFileEngine();
 			if (file2.getName().endsWith("001-S")) {
 				headerFile = file2;
@@ -85,6 +89,9 @@ public class NexradScanEngine {
 					if (tempRadialCount == radialCount) {
 						System.out.println("elevFileList: " + elevFileList);
 						//File[] fileList = (File[]) elevFileList.toArray();
+						if (i != files.size()-1) {
+							elevFileList.add(files.get(i+1));							
+						}
 						File[] fileList = new File[elevFileList.size()]; 
 						elevFileList.toArray(fileList);
 						String filename = siteId+"-"+elev;
@@ -106,34 +113,41 @@ public class NexradScanEngine {
 	}
 
 	public static void joinFiles(File destination, File[] sources) throws IOException {
-		DataOutputStream output = null;
-		try {
-			output = createAppendableStream(destination);
+		//DataOutputStream output = null;
+			//output = createAppendableStream(destination);
 			for (File source : sources) {
 				System.out.println("Merging: "+source);
-				appendFile(output, source);
+				appendFile(destination, source);
 			}
-			output.close();
-		} finally {
-			IOUtils.closeQuietly(output);
-		}
+			//output.close();
 	}
 
 	private static DataOutputStream createAppendableStream(File destination) throws FileNotFoundException {
 		return new DataOutputStream(new FileOutputStream(destination, true));
 	}
 
-	private static void appendFile(OutputStream output, File source) throws IOException {
-		DataInputStream dataIs = null;
-		try {
+	private static void appendFile(File output, File source) throws IOException {
+		//DataInputStream dataIs = null;
+		RandomAccessFile raf = ucar.unidata.io.RandomAccessFile.acquire(source.getPath());
+		RandomAccessFile outRaf;
+			outRaf = new ucar.unidata.io.RandomAccessFile(output.getPath(), "rw");
+			long outRafSize = outRaf.length();
+			outRaf.seek(outRafSize);
+	
+			System.out.println("File LengthInt: "+(int)source.length());
+			System.out.println("File LengthLong: "+source.length());
+			System.out.println("Raf LengthLong: "+raf.length());
+			System.out.println("Raf LengthInt: "+(int)raf.length());
+
 			byte[] dataFile = new byte[(int)source.length()];
-			dataIs = new DataInputStream(new FileInputStream(source));
-			dataIs.readFully(dataFile);
-		    IOUtils.write(dataFile, output);
-		    dataIs.close();
-		} finally {
-			IOUtils.closeQuietly(dataIs);
-		}
+			raf.readFully(dataFile);
+		   // IOUtils.write(dataFile, output);
+			outRaf.write(dataFile);
+			outRaf.close();
+		    //FileUtils.writeByteArrayToFile(output, dataFile, true);
+		    //dataIs.close();
+		    raf.close();
+	
 	}
 
 	public static Integer getVCPElev(int code) {
