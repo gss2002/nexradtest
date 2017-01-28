@@ -42,9 +42,9 @@ public class NexradScanEngine {
 		int tempRadialCount = 0;
 		List<File> elevFileList = new ArrayList<File>();
 
-		//for (File file2 : files) {
+		// for (File file2 : files) {
 		for (int i = 0; i < files.size(); i++) {
-			File file2=files.get(i);
+			File file2 = files.get(i);
 			NexradFileEngine nfe = new NexradFileEngine();
 			if (file2.getName().endsWith("001-S")) {
 				headerFile = file2;
@@ -54,7 +54,7 @@ public class NexradScanEngine {
 				nfe.testValidScan(file2.getAbsolutePath(), outputdir);
 				if (siteId == null) {
 					siteId = nfe.siteId;
-					System.out.println("siteId: "+siteId);
+					System.out.println("siteId: " + siteId);
 
 				}
 				if (nfe.vcp != 0) {
@@ -88,12 +88,12 @@ public class NexradScanEngine {
 
 					if (tempRadialCount == radialCount) {
 						System.out.println("elevFileList: " + elevFileList);
-						if (i != files.size()-1) {
-							elevFileList.add(files.get(i+1));							
+						if (i != files.size() - 1) {
+							elevFileList.add(files.get(i + 1));
 						}
-						File[] fileList = new File[elevFileList.size()]; 
+						File[] fileList = new File[elevFileList.size()];
 						elevFileList.toArray(fileList);
-						String filename = siteId+"-"+elev;
+						String filename = siteId + "-" + elev;
 						joinFiles(new File(filename), fileList);
 						System.out.println(
 								"FILE: " + file2.getName() + " VCP: " + vcp + " Elev.: " + elev + " Elev Angle: "
@@ -112,24 +112,24 @@ public class NexradScanEngine {
 	}
 
 	public static void joinFiles(File destination, File[] sources) throws IOException {
-			for (File source : sources) {
-				System.out.println("Merging: "+source);
-				appendFile(destination, source);
-			}
+		for (File source : sources) {
+			System.out.println("Merging: " + source);
+			appendFile(destination, source);
+		}
 	}
 
 	private static void appendFile(File output, File source) throws IOException {
 		RandomAccessFile raf = ucar.unidata.io.RandomAccessFile.acquire(source.getPath());
 		RandomAccessFile outRaf;
-			outRaf = new ucar.unidata.io.RandomAccessFile(output.getPath(), "rw");
-			long outRafSize = outRaf.length();
-			outRaf.seek(outRafSize);
-			byte[] dataFile = new byte[(int)source.length()];
-			raf.readFully(dataFile);
-			outRaf.write(dataFile);
-			outRaf.close();
-		    raf.close();
-	
+		outRaf = new ucar.unidata.io.RandomAccessFile(output.getPath(), "rw");
+		long outRafSize = outRaf.length();
+		outRaf.seek(outRafSize);
+		byte[] dataFile = new byte[(int) source.length()];
+		raf.readFully(dataFile);
+		outRaf.write(dataFile);
+		outRaf.close();
+		raf.close();
+
 	}
 
 	public static Integer getVCPElev(int code) {
