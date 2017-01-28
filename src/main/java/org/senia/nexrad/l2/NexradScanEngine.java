@@ -88,7 +88,6 @@ public class NexradScanEngine {
 
 					if (tempRadialCount == radialCount) {
 						System.out.println("elevFileList: " + elevFileList);
-						//File[] fileList = (File[]) elevFileList.toArray();
 						if (i != files.size()-1) {
 							elevFileList.add(files.get(i+1));							
 						}
@@ -113,39 +112,22 @@ public class NexradScanEngine {
 	}
 
 	public static void joinFiles(File destination, File[] sources) throws IOException {
-		//DataOutputStream output = null;
-			//output = createAppendableStream(destination);
 			for (File source : sources) {
 				System.out.println("Merging: "+source);
 				appendFile(destination, source);
 			}
-			//output.close();
-	}
-
-	private static DataOutputStream createAppendableStream(File destination) throws FileNotFoundException {
-		return new DataOutputStream(new FileOutputStream(destination, true));
 	}
 
 	private static void appendFile(File output, File source) throws IOException {
-		//DataInputStream dataIs = null;
 		RandomAccessFile raf = ucar.unidata.io.RandomAccessFile.acquire(source.getPath());
 		RandomAccessFile outRaf;
 			outRaf = new ucar.unidata.io.RandomAccessFile(output.getPath(), "rw");
 			long outRafSize = outRaf.length();
 			outRaf.seek(outRafSize);
-	
-			System.out.println("File LengthInt: "+(int)source.length());
-			System.out.println("File LengthLong: "+source.length());
-			System.out.println("Raf LengthLong: "+raf.length());
-			System.out.println("Raf LengthInt: "+(int)raf.length());
-
 			byte[] dataFile = new byte[(int)source.length()];
 			raf.readFully(dataFile);
-		   // IOUtils.write(dataFile, output);
 			outRaf.write(dataFile);
 			outRaf.close();
-		    //FileUtils.writeByteArrayToFile(output, dataFile, true);
-		    //dataIs.close();
 		    raf.close();
 	
 	}
