@@ -91,10 +91,11 @@ public class NexradMessageWorker extends Thread implements Runnable {
 						log.debug("Key: " + path);
 						List<String> radarlist = NexradL2Engine.radar_list;
 						if (radarlist.contains(site)) {
+							log.debug("Site: " + site);
 						//if (site.equalsIgnoreCase("KOKX") || site.equalsIgnoreCase("KDOX") || site.equalsIgnoreCase("KBOX") || site.equalsIgnoreCase("KOAX")) {
-							NexradL2Engine.queueMap.add(path);
-							synchronized (QueueMonitor.lockObj) {
-								QueueMonitor.lockObj.notify();
+							NexradL2Engine.msgQueueMap.add(path);
+							synchronized (NexradMsg2S3LockAgent.lockObj) {
+								NexradMsg2S3LockAgent.lockObj.notify();
 							}
 						}
 						deleteMessage(sqs, s);

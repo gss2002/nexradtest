@@ -39,13 +39,32 @@ public class NexradS3Worker extends Thread implements Runnable {
 		log.debug("Nexrad S3 Worker starting");
 		while (true) {
 			log.trace("Nexrad S3 Worker looking for files to download");
-			Iterator<String> it = NexradL2Engine.queueMap.iterator();
+			Iterator<String> it = NexradL2Engine.msgQueueMap.iterator();
 			while (it.hasNext()) {
-				String nexradPath = NexradL2Engine.queueMap.poll();
-				String site = nexradPath.split("/")[3];
+				String nexradPath = NexradL2Engine.msgQueueMap.poll();
+				String site = nexradPath.split("/")[0];
+				String scan = nexradPath.split("/")[1];
+				
 				try {
+					log.debug("Downloading: "+site+" "+nexradPath);
 					File file = nexradS3.downloadNexrad(nexradPath, nexradOutputPath);
 					String nexr = file.toString();
+					ChunkProcessor chunkProc = null;
+					if (!(NexradL2Engine.chunkQueueMap.containsKey(site))){
+						chunkProc = new ChunkProcessor(site, scan);
+						NexradL2Engine.chunkQueueMap.put(site, chunkProc);
+						chunkProc.start();
+					} else {
+						if (!(NexradL2Engine.chunkQueueMap.get(site).nexradScan.equals(scan))) {
+							NexradL2Engine.chunkQueueMap.get(site).nexradScan = scan;
+						}
+						chunkProc = NexradL2Engine.chunkQueueMap.get(site);
+						synchronized (chunkProc.lockObj) {
+							chunkProc.lockObj.notify();
+						}
+					}
+					
+					
 					
 					/*String nexrout = nexr.split(".ar2v")[0];
 					WctExporter wct = new WctExporter();
@@ -102,10 +121,10 @@ public class NexradS3Worker extends Thread implements Runnable {
 				
 
 			}
-			synchronized (QueueMonitor.lockObj) {
+			synchronized (NexradMsg2S3LockAgent.lockObj) {
 				try {
 					log.debug("Putting Nexrad S3 Worker into wait");
-					QueueMonitor.lockObj.wait();
+					NexradMsg2S3LockAgent.lockObj.wait();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 				}

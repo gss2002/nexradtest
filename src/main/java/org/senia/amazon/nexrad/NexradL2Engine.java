@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,7 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public class NexradL2Engine {
-	public static Queue<String> queueMap = new LinkedList<String>();
+	public static Queue<String> msgQueueMap = new LinkedList<String>();
+	public static Hashtable<String, ChunkProcessor> chunkQueueMap = new Hashtable<String, ChunkProcessor>();
+
 	private static final Logger log = LoggerFactory.getLogger(NexradL2Engine.class);
 	public static String nexradOutputPath;
 	public static String l2refConfig;
@@ -51,8 +56,10 @@ public class NexradL2Engine {
 		// during
 		// the initialization phase of your application
 		SLF4JBridgeHandler.install();
-		QueueMonitor qm = new QueueMonitor();
-		log.info("QueueMontior Class: " + qm.getClass().getName());
+		NexradMsg2S3LockAgent nexrLockAgent = new NexradMsg2S3LockAgent();
+		log.info("NexradMsg2S3LockAgent Class: " + nexrLockAgent.getClass().getName());
+		NexradChunkLockAgent nexrChunkLockAgent = new NexradChunkLockAgent();
+		log.info("NexradChunkLockAgent Class: " + nexrChunkLockAgent.getClass().getName());
 
 		NexradMessageWorker nexradMsgThread1 = new NexradMessageWorker("NexradMessageThread-1", nexradQueueConfig);
 		NexradMessageWorker nexradMsgThread2 = new NexradMessageWorker("NexradMessageThread-2", nexradQueueConfig);
