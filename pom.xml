@@ -5,6 +5,15 @@
 	<artifactId>NexradTest</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>NexradL2Test</name>
+
+	<repositories>
+		<repository>
+			<id>maven.senia.org</id>
+			<name>maven.senia.org</name>
+			<url>http://maven.senia.org/maven</url>
+		</repository>
+	</repositories>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -169,8 +178,8 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
 		</dependency>
-		
-		
+
+
 		<dependency>
 			<groupId>gov.noaa.wct</groupId>
 			<artifactId>wct</artifactId>
